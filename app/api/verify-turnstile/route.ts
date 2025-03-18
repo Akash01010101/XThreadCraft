@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
-const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAA_WkUL7To9yOrlvTZJPqkVXBfY';
+const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAABAEkEqs5gzr-S6G_BbWYnMBSNA';
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 export async function POST(request: Request) {
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     });
 
     const outcome = await result.json();
-
+    
     if (outcome.success) {
       const session = await getServerSession(authOptions);
 
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ success: true });
     } else {
-      return NextResponse.json({ success: false, error: 'Invalid CAPTCHA' });
+      return NextResponse.json({ success: false, error: outcome.error });
     }
   } catch (error) {
     console.error('Error verifying turnstile:', error);

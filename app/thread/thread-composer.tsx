@@ -10,6 +10,7 @@ import { ImageIcon, SaveIcon, Loader2, BarChart } from "lucide-react";
 import { ThreadPreview } from "./thread-preview";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import SearchExperience from "../test/page";
 
 interface Tweet {
   content: string;
@@ -19,6 +20,7 @@ interface Tweet {
 const MAX_TWEET_LENGTH = 160;
 
 export function ThreadComposer() {
+  const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
   const [content, setContent] = useState<string>("");
   const [tweets, setTweets] = useState<Tweet[]>([]);
@@ -67,7 +69,9 @@ export function ThreadComposer() {
 
   const handleSave = async () => {
     if (!session?.user?.email) {
+      console.log("Session:", session);
       console.error("User not authenticated.");
+      
       return;
     }
   
@@ -232,6 +236,37 @@ export function ThreadComposer() {
                 >
                   <ImageIcon className="h-5 w-5 text-gray-500" />
                 </label>
+                {/* Button to open popup */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="mt-2 px-4 py-2 text-sm text-white bg-black-100 rounded cursor-pointer"
+      >
+        GIF Search
+      </button>
+
+      {/* Modal */}
+      {isOpen && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 relative">
+    
+      {/* Close Button */}
+      <button
+        onClick={() => setIsOpen(false)}
+        className="absolute top-3 right-3 text-2xl text-gray-600 hover:text-gray-900"
+      >
+        &times;
+      </button>
+
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="text-lg font-semibold">Search for GIFs</h2>
+        <p className="text-sm text-gray-500">Powered by GIPHY</p>
+      </div>
+
+      {/* GIF Search Component */}
+      <SearchExperience />
+    </div>
+  
+)}
               </div>
               <Button
                 onClick={handleAddTweet}
