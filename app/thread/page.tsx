@@ -1,54 +1,25 @@
 "use client";
 
 import { ThreadComposer } from "./thread-composer";
-import { Header } from "./header";
 import { SavedThreads } from "./saved-threads";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { TurnstileWrapper } from "./turnstile-wrapper";
-
+import { useState } from "react";
 export default function ThreadPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [turnstileActive, setTurnstileActive] = useState(false);
+  
 
   useEffect(() => {
     if (status !== "loading" && !session) {
       router.push("/login");
     }
 
-    // Inject a script to intercept fetch/XHR requests
-    const script = document.createElement("script");
-    script.innerHTML = `
-      (function() {
-        const originalFetch = window.fetch;
-        window.fetch = async function(...args) {
-          const response = await originalFetch(...args);
-          if (args[0].includes("taskade.com/api/messages")) {
-            fetch("/api/chat-usage", { 
-              method: "POST", 
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ count: 1 })
-            });
-          }
-          return response;
-        };
-
-        const originalXHR = XMLHttpRequest.prototype.open;
-        XMLHttpRequest.prototype.open = function(method, url) {
-          if (url.includes("taskade.com/api/messages")) {
-            fetch("/api/chat-usage", { 
-              method: "POST", 
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ count: 1 })
-            });
-          }
-          return originalXHR.apply(this, arguments);
-        };
-      })();
-    `;
-    document.head.appendChild(script);
-  }, [session, status, router]);
+  }
+, []);
 
   if (status === "loading") {
     return (
@@ -67,7 +38,10 @@ export default function ThreadPage() {
 
   return (
     <div className="min-h-screen bg-muted dark:bg-background">
-      <Header />
+      <div
+      onClick={() => setTurnstileActive(true)}
+      className="w-full max-w-4xl mx-auto mb-6 p-4 mt-10 cursor-pointer"
+    >{turnstileActive ? (
       <div className="w-full max-w-4xl mx-auto mb-6 p-4">
         <TurnstileWrapper>
           <iframe
@@ -81,7 +55,9 @@ export default function ThreadPage() {
             allowFullScreen
           />
         </TurnstileWrapper>
-      </div>
+      </div>) : ( <div className="rounded-lg shadow-lg bg-white border border-gray-200 p-6 text-center text-black">
+          Click to verify and load chat
+        </div> )}</div>
       
       <main className="container mx-auto px-4 py-6">
         <div className="space-y-6">

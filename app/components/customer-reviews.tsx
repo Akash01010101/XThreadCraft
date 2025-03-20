@@ -7,48 +7,50 @@ import { Star } from 'lucide-react';
 
 const reviews = [
   {
-    name: 'Sarah Johnson',
-    handle: '@sarahj_writes',
-    avatar: 'SJ',
-    content: 'XThreadCraft has completely transformed how I manage my Twitter presence. The thread creation tool is intuitive and powerful! 🚀',
-    rating: 5
+      "name": "Tom Wilson",
+      "handle": "@tomwrites",
+      "avatar": "TW",
+      "content": "Spent 72 hours watching productivity videos. Didn’t apply a single hack. Turns out watching a ‘How to Wake Up at 5 AM’ video at 2 AM isn’t peak efficiency. ThreadMastery got me actually *doing* things. 4/5, still working on waking up early.",
+      "rating": 4
   },
   {
-    name: 'Mike Chen',
-    handle: '@miketech',
-    avatar: 'MC',
-    content: 'The scheduling features and analytics have helped me grow my audience significantly. Best investment for content creators!',
-    rating: 5
+      "name": "Lisa Carter",
+      "handle": "@lisaloops",
+      "avatar": "LC",
+      "content": "Used to consume so much self-improvement content I became a philosopher by accident. AI finally helped me escape the theory trap—now I *apply* what I learn instead of just quoting it at dinner parties. 4/5, my friends miss Socrates Lisa.",
+      "rating": 4
   },
   {
-    name: 'Emma Davis',
-    handle: '@emmawrites',
-    avatar: 'ED',
-    content: 'Clean interface, great support, and amazing features. XThreadCraft makes thread creation a breeze! ✨',
-    rating: 5
+      "name": "Brian Oakley",
+      "handle": "@oakleybuilds",
+      "avatar": "BO",
+      "content": "I followed 387 productivity gurus. Knew every Pomodoro technique by heart but couldn’t finish a single to-do list. Turns out AI + action beats ‘hustle inspiration’ every time. 4/5, still unlearning my addiction to morning routine breakdowns.",
+      "rating": 4
   },
   {
-    name: 'Alex Rivera',
-    handle: '@alexcreates',
-    avatar: 'AR',
-    content: 'The auto-split feature saves me hours of work. Love how it maintains the context of my long-form content! 💡',
-    rating: 4
+      "name": "Samantha Reed",
+      "handle": "@samtracks",
+      "avatar": "SR",
+      "content": "Scrolled through 1000 ‘build in public’ posts, built absolutely nothing. AI forced me to start *before* perfecting my Notion dashboard. Now I actually create. 4/5, wish AI could also fix my commitment to new side projects.",
+      "rating": 4
   },
   {
-    name: 'Priya Patel',
-    handle: '@priyatech',
-    avatar: 'PP',
-    content: 'As a social media manager, the multi-account support and team collaboration features are game-changers. Highly recommend! 🌟',
-    rating: 5
+      "name": "Jake Thompson",
+      "handle": "@jaketakes",
+      "avatar": "JT",
+      "content": "I studied social media growth strategies so much I forgot to actually post. AI made me stop overanalyzing and just start sharing. 4/5, still recovering from my ‘content batching paralysis’ era.",
+      "rating": 4
   },
   {
-    name: 'Tom Wilson',
-    handle: '@tomwrites',
-    avatar: 'TW',
-    content: 'Great for scheduling and analytics. Would love to see more customization options, but overall a solid tool.',
-    rating: 4
+      "name": "Nina Patel",
+      "handle": "@ninathinks",
+      "avatar": "NP",
+      "content": "I used to hoard knowledge like a dragon with gold. AI finally made me *use* it instead of just admiring my collection. 4/5, still resisting the urge to take ‘one more course’ before starting.",
+      "rating": 4
   }
 ];
+
+
 
 export function CustomerReviews() {
   return (

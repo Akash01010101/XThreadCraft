@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 
+
 interface Tweet {
   content: string;
   imageFile?: File;
@@ -16,6 +17,7 @@ interface ThreadPreviewProps {
 }
 
 export function ThreadPreview({ tweets, setTweets }: ThreadPreviewProps) {
+  
   const { data: session } = useSession();
   const handleDeleteTweet = (index: number) => {
     setTweets(tweets.filter((_, i) => i !== index));
@@ -29,14 +31,23 @@ export function ThreadPreview({ tweets, setTweets }: ThreadPreviewProps) {
   };
   
 
-  const handleImageChange = (index: number, file: File | null) => {
-    if (!file) return;
+  const handleImageChange = (index: number, input: File | string | null) => {
+    if (!input) return;
 
     const newTweets = [...tweets];
-    newTweets[index].imageFile = file;
-    newTweets[index].imageUrl = URL.createObjectURL(file);
+
+    if (typeof input === "string") {
+        // If it's a URL (Giphy link)
+        newTweets[index].imageFile = undefined;
+        newTweets[index].imageUrl = input;
+    } else {
+        // If it's a file
+        newTweets[index].imageFile = input;
+        newTweets[index].imageUrl = URL.createObjectURL(input);
+    }
+
     setTweets(newTweets);
-  };
+};
 
   return (
     <div className="space-y-6">
@@ -75,26 +86,27 @@ export function ThreadPreview({ tweets, setTweets }: ThreadPreviewProps) {
                 rows={2}
               />
               <div className="flex space-x-2">
-                <button
-                  onClick={() => handleMoveTweet(index, "up")}
-                  disabled={index === 0}
-                  className="p-2 bg-primary/10 hover:bg-primary/20 rounded-md text-sm disabled:opacity-50"
-                >
-                  ⬆️
-                </button>
-                <button
-                  onClick={() => handleMoveTweet(index, "down")}
-                  disabled={index === tweets.length - 1}
-                  className="p-2 bg-primary/10 hover:bg-primary/20 rounded-md text-sm disabled:opacity-50"
-                >
-                  ⬇️
-                </button>
-                <button
-                  onClick={() => handleDeleteTweet(index)}
-                  className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm"
-                >
-                  ❌
-                </button>
+              <button
+                onClick={() => handleMoveTweet(index, "up")}
+                disabled={index === 0}
+                className="p-2 bg-gray-800 text-white hover:bg-gray-600 rounded-md text-sm disabled:opacity-50"
+              >
+                ▲
+              </button>
+              <button
+                onClick={() => handleMoveTweet(index, "down")}
+                disabled={index === tweets.length - 1}
+                className="p-2 bg-gray-800 text-white hover:bg-gray-600 rounded-md text-sm disabled:opacity-50"
+              >
+                ▼
+              </button>
+              <button
+                onClick={() => handleDeleteTweet(index)}
+                className="p-2 bg-red-700 text-white hover:bg-red-500 rounded-md text-sm"
+              >
+                ✖
+              </button>
+
               </div>
 
               {/* Image Preview */}
@@ -121,7 +133,13 @@ export function ThreadPreview({ tweets, setTweets }: ThreadPreviewProps) {
                 onChange={(e) => handleImageChange(index, e.target.files?.[0] || null)}
                 className="mt-2 text-sm text-primary cursor-pointer file:hidden"
               />
+
+<div>
+      
+
+    </div>
             </div>
+
           </div>
         </motion.div>
       ))}

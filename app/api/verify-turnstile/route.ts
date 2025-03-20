@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     });
 
     const outcome = await result.json();
-
+    
     if (outcome.success) {
       const session = await getServerSession(authOptions);
 
