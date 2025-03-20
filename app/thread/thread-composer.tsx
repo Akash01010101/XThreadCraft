@@ -16,8 +16,6 @@ interface Tweet {
   imageFile?: File;
 }
 
-const MAX_TWEET_LENGTH = 160;
-
 export function ThreadComposer() {
   const { data: session } = useSession();
   const [content, setContent] = useState<string>("");

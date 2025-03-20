@@ -3,15 +3,15 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
-const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAA_WkUL7To9yOrlvTZJPqkVXBfY';
-const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
+const TURNSTILE_VERIFY_URL = process.env.TURNSTILE_VERIFY_URL || 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 export async function POST(request: Request) {
   try {
     const { token } = await request.json();
 
     const formData = new URLSearchParams();
-    formData.append('secret', TURNSTILE_SECRET_KEY);
+    formData.append('secret', TURNSTILE_SECRET_KEY!);
     formData.append('response', token);
 
     const result = await fetch(TURNSTILE_VERIFY_URL, {
@@ -27,11 +27,11 @@ export async function POST(request: Request) {
     if (outcome.success) {
       const session = await getServerSession(authOptions);
 
-      if (!session?.user?.email) {
+      if (!session?.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const userId = session.user.email;
+      const userId = session.user.id;
 
       // Fetch current verification count
       const { data: userData, error: fetchError } = await supabase
@@ -83,7 +83,11 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ success: true });
     } else {
-      return NextResponse.json({ success: false, error: 'Invalid CAPTCHA' });
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Invalid CAPTCHA', 
+        details: outcome.error_codes || outcome['error-codes'] || 'No error details available'
+      });
     }
   } catch (error) {
     console.error('Error verifying turnstile:', error);

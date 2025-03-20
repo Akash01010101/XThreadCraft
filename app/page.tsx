@@ -4,26 +4,17 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Footer } from "@/components/footer";
 import Link from "next/link";
 import {
-  PenTool,
-  Share2,
-  Settings,
-  CreditCard,
-  FileText,
-  Scale,
-  ArrowRight,
   Check,
+  ArrowRight,
   Sparkles,
   Clock,
   BarChart3,
-  Users,
-  Zap
+  Users
 } from "lucide-react";
 
 import { AnimatedHero } from './components/animated-hero';
@@ -46,7 +37,7 @@ const features = [
     description: 'Plan your content ahead with advanced scheduling features',
     points: ['Flexible scheduling options', 'Time zone optimization', 'Queue management']
   },
-    {
+  {
     icon: BarChart3,
     title: 'Analytics & Insights',
     description: 'Track your thread performance with detailed analytics',
@@ -58,7 +49,7 @@ const features = [
     description: 'Work together with your team seamlessly',
     points: ['Real-time collaboration', 'Plan and Schedule Content in a single deep work session']
   },
-  ];
+];
 
 export default function HomePage() {
   return (
@@ -152,7 +143,7 @@ export default function HomePage() {
         >
           <h2 className="text-4xl font-bold mb-8">Ready to Start Creating?</h2>
           <p className="text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto">
-            Best of all, it's free to use. Get started today and create your first thread in minutes.
+            Best of all, it&apos;s free to use. Get started today and create your first thread in minutes.
           </p>
           <Link href="/thread">
             <Button size="lg" className="gap-3 text-lg px-8 py-6">

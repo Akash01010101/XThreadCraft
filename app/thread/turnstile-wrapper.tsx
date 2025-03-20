@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { createPortal } from 'react-dom';
-import PricingPage from '../pricing/page';
+import PricingPage from '../Pricing/page';
 
 interface TurnstileWrapperProps {
   children: React.ReactNode;
@@ -49,7 +49,7 @@ export function TurnstileWrapper({ children }: TurnstileWrapperProps) {
         setVerificationCount(prev => prev + 1);
       } else {
         setShowError(true);
-        setErrorMessage(data.error || 'Verification failed');
+        setErrorMessage(data.error + (data.details ? `: ${data.details}` : '') || 'Verification failed');
       }
     } catch (error) {
 

@@ -1,19 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Twitter } from "lucide-react";
 import { Moon, Sun, LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
-import { useInView } from 'react-intersection-observer';
 
 export function Header() {
   const { theme, setTheme } = useTheme();
-  const [ref, inView] = useInView({
-    triggerOnce: true, // Animation runs once when section is in view
-    threshold: 0.1,    // Trigger when 10% of the section is visible
-  });
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <nav className="container flex items-center justify-between h-16 px-4">
