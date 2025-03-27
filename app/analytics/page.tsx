@@ -20,7 +20,7 @@ interface CachedData {
   timestamp: number;
 }
 
-const CACHE_DURATION = 1000 * 60 * 60; // 1 hour in milliseconds
+const CACHE_DURATION = 1000 * 60 * 60 *2; // 1 hour in milliseconds
 
 export default function AnalyticsPage() {
   const { data: session, status } = useSession();
@@ -60,7 +60,12 @@ export default function AnalyticsPage() {
         }
 
         // If cache is invalid or doesn't exist, fetch from API
-        const res = await fetch(`/api/analytics?userId=${session.user.id}`);
+        const res = await fetch('/api/analytics', {
+          headers: {
+            'Authorization': `Bearer ${session.accessToken}`,
+            'X-Access-Secret': session.accessSecret || ''
+          }
+        });
         const data = await res.json();
 
         if (!res.ok) {

@@ -42,8 +42,34 @@ export function ThreadComposer() {
   }, []);
 
   const splitTweet = (text: string): string[] => {
-    return text.split("___").map(part => part.trim()).filter(part => part.length > 0);
-};
+    // First split by delimiter
+    const manualSplits = text.split("___").map(part => part.trim()).filter(part => part.length > 0);
+    
+    // Then split any tweets that exceed character limit
+    const maxLength = 260;
+    const finalTweets: string[] = [];
+    
+    manualSplits.forEach(tweet => {
+      if (tweet.length <= maxLength) {
+        finalTweets.push(tweet);
+      } else {
+        // Split long tweet into multiple tweets
+        let remainingText = tweet;
+        while (remainingText.length > 0) {
+          // Find last space within character limit
+          let splitIndex = remainingText.slice(0, maxLength).lastIndexOf(" ");
+          if (splitIndex === -1 || splitIndex === 0) {
+            splitIndex = Math.min(maxLength, remainingText.length);
+          }
+          
+          finalTweets.push(remainingText.slice(0, splitIndex).trim());
+          remainingText = remainingText.slice(splitIndex).trim();
+        }
+      }
+    });
+    
+    return finalTweets;
+  };
 
 
   const handleAddTweet = () => {

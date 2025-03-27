@@ -130,17 +130,18 @@ export default function TweetDeleterPage() {
   }
   const handleBulkDelete = async () => {
     try {
-      const tweetsToDelete = tweets.filter(tweet => tweet.public_metrics.like_count < minLikes);
+      if (!tweets || tweets.length === 0) return;
+  
+      const tweetsToDelete = tweets.filter(
+        (tweet) => tweet.public_metrics.like_count < minLikes
+      );
   
       for (const tweet of tweetsToDelete) {
         const headers: HeadersInit = {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.accessToken || ""}`,
+          Authorization: `Bearer ${session?.accessToken ?? ""}`,
+          ...(session?.accessSecret && { "X-Access-Secret": session.accessSecret }),
         };
-  
-        if (session?.accessSecret) {
-          headers["X-Access-Secret"] = session.accessSecret;
-        }
   
         const response = await fetch(`/api/analytics/delete-tweet`, {
           method: "DELETE",
@@ -148,32 +149,39 @@ export default function TweetDeleterPage() {
           body: JSON.stringify({ tweetId: tweet.id }),
         });
   
+        if (response.status === 429) {
+          const data = await response.json();
+          setError(
+            `Rate limit exceeded. Tweets will be automatically deleted after ${Math.ceil(
+              data.waitTime / 1000
+            )} seconds. Please wait...`
+          );
+          return;
+        }
+  
         if (!response.ok) {
-          throw new Error("Failed to delete tweet");
+          throw new Error(`Failed to delete tweet with ID: ${tweet.id}`);
         }
       }
   
       // Update state to remove deleted tweets
-      const updatedTweets = tweets.filter(tweet => tweet.public_metrics.like_count >= minLikes);
+      const updatedTweets = tweets.filter(
+        (tweet) => tweet.public_metrics.like_count >= minLikes
+      );
       setTweets(updatedTweets);
       setCachedData(updatedTweets);
-    } catch (err) {
-      console.error("Error during bulk delete:", err);
+    } catch (error) {
+      console.error("Error during bulk delete:", error);
       setError("Failed to perform bulk delete. Please try again later.");
     }
   };
-  
-
   const deleteTweet = async (tweetId: string) => {
     try {
       const headers: HeadersInit = {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${session?.accessToken || ""}`,
+        Authorization: `Bearer ${session?.accessToken ?? ""}`,
+        ...(session?.accessSecret && { "X-Access-Secret": session.accessSecret }),
       };
-  
-      if (session?.accessSecret) {
-        headers["X-Access-Secret"] = session.accessSecret;
-      }
   
       const response = await fetch(`/api/analytics/delete-tweet`, {
         method: "DELETE",
@@ -181,16 +189,26 @@ export default function TweetDeleterPage() {
         body: JSON.stringify({ tweetId }),
       });
   
+      if (response.status === 429) {
+        const data = await response.json();
+        setError(
+          `Rate limit exceeded. Tweets will be automatically deleted after ${Math.ceil(
+            data.waitTime / 1000
+          )} seconds. Please wait...`
+        );
+        return;
+      }
+  
       if (!response.ok) {
         throw new Error("Failed to delete tweet");
       }
   
       // Remove the deleted tweet from the state
-      const updatedTweets = tweets.filter(tweet => tweet.id !== tweetId);
+      const updatedTweets = tweets.filter((tweet) => tweet.id !== tweetId);
       setTweets(updatedTweets);
       setCachedData(updatedTweets);
-    } catch (err) {
-      console.error("Error deleting tweet:", err);
+    } catch (error) {
+      console.error("Error deleting tweet:", error);
       setError("Failed to delete tweet. Please try again later.");
     }
   };

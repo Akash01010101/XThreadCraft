@@ -49,10 +49,8 @@ export function ThreadComposer2() {
         setIsPosting(false)
         return
       }
-
       setIsPosting(true)
       const formData = new FormData()
-
       console.log("Tweets before submission:", tweets)
 
       tweets.forEach((tweet, index) => {
