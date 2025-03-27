@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 import { TwitterApi } from "twitter-api-v2";
 
-const MAX_RETRIES = 3;
-const INITIAL_RETRY_DELAY = 1000; // 1 second
-
-async function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 // Type guard for Twitter API errors
 function isRateLimitError(error: unknown): error is { code: number; rateLimit?: { reset: number } } {
   return (
@@ -16,32 +9,6 @@ function isRateLimitError(error: unknown): error is { code: number; rateLimit?: 
     "code" in error &&
     (error as { code: number }).code === 429
   );
-}
-
-async function deleteWithRetry(
-  client: TwitterApi,
-  tweetId: string,
-  retryCount = 0
-): Promise<{ success: boolean; retryInfo?: { attempt: number; waitTime: number } }> {
-  try {
-    await client.v2.deleteTweet(tweetId);
-    return { success: true };
-  } catch (error) {
-    if (isRateLimitError(error) && retryCount < MAX_RETRIES) {
-      const resetTime = error.rateLimit?.reset;
-      const waitTime = resetTime
-        ? resetTime * 1000 - Date.now()
-        : INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
-
-      console.log(
-        `Rate limited. Retrying in ${waitTime}ms... (Attempt ${retryCount + 1}/${MAX_RETRIES})`
-      );
-
-      await wait(waitTime);
-      return deleteWithRetry(client, tweetId, retryCount + 1);
-    }
-    throw error;
-  }
 }
 
 export async function DELETE(request: Request) {
@@ -65,20 +32,24 @@ export async function DELETE(request: Request) {
       accessSecret,
     });
 
-    const result = await deleteWithRetry(client, tweetId);
+    await client.v2.deleteTweet(tweetId);
 
     return NextResponse.json({
       success: true,
-      message: result.retryInfo
-        ? `Tweet deleted successfully after ${result.retryInfo.attempt} attempts`
-        : "Tweet deleted successfully",
+      message: "Tweet deleted successfully"
     });
   } catch (error) {
     console.error("Error deleting tweet:", error);
 
     if (isRateLimitError(error)) {
+      const resetTime = error.rateLimit?.reset;
+      const waitTime = resetTime ? resetTime * 1000 - Date.now() : 60000; // Default to 1 minute if no reset time
       return NextResponse.json(
-        { error: "Rate limit exceeded. Please try again later." },
+        { 
+          error: "Rate limit exceeded",
+          waitTime,
+          resetTime: resetTime ? new Date(resetTime * 1000).toISOString() : undefined
+        },
         { status: 429 }
       );
     }
