@@ -69,10 +69,15 @@ export default function AnalyticsPage() {
         const data = await res.json();
 
         if (!res.ok) {
+          if (res.status === 429) {
+            const waitTimeMinutes = Math.ceil(data.waitTime / 60);
+            setError(`Rate limit exceeded. Please wait ${waitTimeMinutes} minute${waitTimeMinutes > 1 ? 's' : ''} before trying again. (Reset at ${new Date(data.resetTime).toLocaleTimeString()})`);
+            return;
+          }
           throw new Error(data.error || "Failed to fetch analytics.");
         }
 
-        const newTweets = data.data || [];
+        const newTweets = data.tweets || [];
         setTweets(newTweets);
         setCachedData(newTweets); // Cache the new data
       } catch (error) {

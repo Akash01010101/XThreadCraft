@@ -57,6 +57,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         const resetTime = new Date(error.rateLimit.reset * 1000)
         const waitTime = Math.ceil((resetTime.getTime() - Date.now()) / 1000)
         console.warn(`Rate limit exceeded. Wait ${waitTime} seconds before retrying.`)
+        return NextResponse.json(
+          { 
+            error: "Rate limit exceeded", 
+            waitTime,
+            resetTime: resetTime.toISOString(),
+            details: error.data?.errors ?? [] 
+          },
+          { status: 429 }
+        )
       }
 
       return NextResponse.json(
