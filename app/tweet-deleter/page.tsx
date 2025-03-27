@@ -199,10 +199,10 @@ export default function TweetDeleterPage() {
 
   if (loading && tweets.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-950">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
-          <RefreshCw className="w-12 h-12 text-blue-400 animate-spin" />
-          <p className="text-lg text-gray-200">Loading tweets...</p>
+          <RefreshCw className="w-12 h-12 text-primary animate-spin" />
+          <p className="text-lg text-foreground">Loading tweets...</p>
         </div>
       </div>
     )
@@ -210,10 +210,10 @@ export default function TweetDeleterPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-950">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4 max-w-md text-center">
-          <X className="w-12 h-12 text-red-400" />
-          <p className="text-lg text-gray-200">{error}</p>
+          <X className="w-12 h-12 text-destructive" />
+          <p className="text-lg text-foreground">{error}</p>
           <Button onClick={fetchTweets}>Try Again</Button>
         </div>
       </div>
@@ -221,26 +221,26 @@ export default function TweetDeleterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 mt-16 p-4 md:p-8">
+    <div className="min-h-screen bg-background text-foreground mt-16 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <Trash2 className="w-8 h-8 text-red-500" />
           <h1 className="text-3xl font-bold">Tweet Deleter</h1>
         </div>
 
-        <Card className="bg-gray-900 border-gray-800 mb-8">
+        <Card className="bg-card border-border mb-8">
           <CardHeader>
             <CardTitle>Delete Your Tweets</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-400 mb-4">
+            <p className="text-muted-foreground mb-4">
               Use this tool to find and delete your tweets. Once deleted, tweets cannot be recovered.
             </p>
             <div className="relative mb-6">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search tweets..."
-                className="pl-8 bg-gray-800 border-gray-700"
+                className="pl-8 bg-background border-border text-foreground"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -250,16 +250,16 @@ export default function TweetDeleterPage() {
               <div className="space-y-4">
                 {filteredTweets.length > 0 ? (
                   filteredTweets.map((tweet) => (
-                    <div key={tweet.id} className="p-4 border border-gray-800 rounded-md group">
+                    <div key={tweet.id} className="p-4 border border-border rounded-md group">
                       <div className="flex justify-between">
                         <p className="text-sm">{tweet.text}</p>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
-                              <Trash2 className="h-4 w-4 text-red-500" />
+                              <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent className="bg-gray-900 border-gray-800">
+                          <AlertDialogContent className="bg-card border-border">
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Tweet</AlertDialogTitle>
                               <AlertDialogDescription>
@@ -267,7 +267,7 @@ export default function TweetDeleterPage() {
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel className="bg-gray-800 hover:bg-gray-700">Cancel</AlertDialogCancel>
+                              <AlertDialogCancel className="bg-secondary hover:bg-secondary/80">Cancel</AlertDialogCancel>
                               <AlertDialogAction
                                 className="bg-red-600 hover:bg-red-700"
                                 onClick={() => deleteTweet(tweet.id)}
@@ -278,7 +278,7 @@ export default function TweetDeleterPage() {
                           </AlertDialogContent>
                         </AlertDialog>
                       </div>
-                      <div className="flex justify-between mt-2 text-xs text-gray-400">
+                      <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                         <span>{format(new Date(tweet.created_at), "MMM d, yyyy")}</span>
                         <div className="flex items-center gap-2">
                           <span className="flex items-center">
@@ -292,8 +292,8 @@ export default function TweetDeleterPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="flex items-center justify-center p-6 border border-dashed border-gray-800 rounded-md">
-                    <p className="text-gray-400">No tweets found</p>
+                  <div className="flex items-center justify-center p-6 border border-dashed border-border rounded-md">
+                    <p className="text-muted-foreground">No tweets found</p>
                   </div>
                 )}
               </div>
@@ -304,7 +304,7 @@ export default function TweetDeleterPage() {
                 <Input
                   type="number"
                   placeholder="Minimum likes"
-                  className="w-40 bg-gray-800 border-gray-700"
+                  className="w-40 bg-background border-border text-foreground"
                   value={minLikes}
                   onChange={(e) => setMinLikes(Number(e.target.value))}
                 />
