@@ -1,119 +1,73 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/authOptions";
-import OAuth from "oauth-1.0a";
-import crypto from "crypto";
+import { type NextRequest, NextResponse } from "next/server"
+import { TwitterApi, ApiResponseError } from "twitter-api-v2"
 
-interface TwitterData {
-  id: string;
-  text: string;
-  public_metrics: {
-    retweet_count: number;
-    reply_count: number;
-    like_count: number;
-    quote_count: number;
-  };
+const getTwitterClient = (userAccessToken: string, userAccessSecret: string): TwitterApi => {
+  const appKey = process.env.TWITTER_API_KEY
+  const appSecret = process.env.TWITTER_API_SECRET
+
+  if (!appKey || !appSecret) {
+    console.error("Missing Twitter API credentials")
+    throw new Error("Twitter API credentials not configured")
+  }
+
+  return new TwitterApi({
+    appKey,
+    appSecret,
+    accessToken: userAccessToken,
+    accessSecret: userAccessSecret,
+  })
 }
 
-interface CacheEntry {
-  data: TwitterData[];
-  timestamp: number;
-}
-
-const CACHE = new Map<string, CacheEntry>();
-const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
-
-
-export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user || !session.accessToken || !session.accessSecret) {
-    console.error("Unauthorized request:", session);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get("userId");
-
-  if (!userId) {
-    console.error("Missing userId in request");
-    return NextResponse.json({ error: "Invalid userId" }, { status: 400 });
-  }
-
-  console.log("Fetching analytics for user:", userId);
-
-  // Check Cache First
-  if (CACHE.has(userId)) {
-    const { data, timestamp } = CACHE.get(userId)!;
-    if (Date.now() - timestamp < CACHE_DURATION) {
-      console.log("Returning cached data for user:", userId);
-      return NextResponse.json({ data }, { status: 200 });
-    }
-  }
-
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const oauth = new OAuth({
-      consumer: {
-        key: process.env.TWITTER_API_KEY as string,
-        secret: process.env.TWITTER_API_SECRET as string,
-      },
-      signature_method: "HMAC-SHA1",
-      hash_function(base_string, key) {
-        return crypto.createHmac("sha1", key).update(base_string).digest("base64");
-      },
-    });
+    const timeframeParam = request.nextUrl.searchParams.get("timeframe") || "3"
+    const timeframe = parseInt(timeframeParam, 10)
 
-    const token = {
-      key: session.accessToken,
-      secret: session.accessSecret,
-    };
+    if (isNaN(timeframe) || timeframe <= 0) {
+      return NextResponse.json({ error: "Invalid timeframe" }, { status: 400 })
+    }
 
-    const url = `https://api.twitter.com/2/users/${userId}/tweets?tweet.fields=public_metrics`;
-    const authHeader = oauth.toHeader(oauth.authorize({ url, method: "GET" }, token));
+    const authHeader = request.headers.get("Authorization")
+    const userAccessToken = authHeader?.split(" ")[1] || null
+    const userAccessSecret = request.headers.get("X-Access-Secret")
 
-    // Retry logic for rate limiting
-    const fetchWithRetry = async (retries = 3, delay = 5000): Promise<NextResponse> => {
-      for (let i = 0; i < retries; i++) {
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            ...authHeader,
-            "Content-Type": "application/json",
-          },
-        });
+    if (!userAccessToken || !userAccessSecret) {
+      return NextResponse.json({ error: "Missing user credentials" }, { status: 400 })
+    }
 
-        // Check rate limit headers
-        const limitReset = response.headers.get("x-rate-limit-reset");
+    const client = getTwitterClient(userAccessToken, userAccessSecret)
+    const me = await client.v2.me()
 
-        if (response.status === 429) {
-          const waitTime = limitReset
-            ? Number(limitReset) * 1000 - Date.now()
-            : delay * (i + 1);
-          console.warn(`Rate limit hit. Retrying after ${waitTime / 1000} seconds...`);
-          await new Promise((resolve) => setTimeout(resolve, waitTime));
-          continue;
-        }
+    const startDate = new Date()
+    startDate.setMonth(startDate.getMonth() - timeframe)
+    const startTimeISO = startDate.toISOString()
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Twitter API Error:", response.status, errorText);
-          return NextResponse.json({ error: "Failed to fetch tweets" }, { status: response.status });
-        }
+    const tweets = await client.v2.userTimeline(me.data.id, {
+      max_results: 100,
+      "tweet.fields": ["created_at", "public_metrics"],
+      start_time: startTimeISO,
+    })
 
-        const twitterData = await response.json();
-        console.log("Twitter API Response:", twitterData);
+    return NextResponse.json({ tweets: tweets.data.data ?? [] })
+  } catch (error: unknown) {
+    console.error("Error fetching tweets:", error)
 
-        // Store in cache
-        CACHE.set(userId, { data: twitterData.data, timestamp: Date.now() });
-
-        return NextResponse.json({ data: twitterData.data }, { status: 200 });
+    if (error instanceof ApiResponseError) {
+      if (error.rateLimit?.reset) {
+        const resetTime = new Date(error.rateLimit.reset * 1000)
+        const waitTime = Math.ceil((resetTime.getTime() - Date.now()) / 1000)
+        console.warn(`Rate limit exceeded. Wait ${waitTime} seconds before retrying.`)
       }
-      return NextResponse.json({ error: "Too many requests, try again later" }, { status: 429 });
-    };
 
-    return await fetchWithRetry();
-  } catch (error) {
-    console.error("Internal Server Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Twitter API error", details: error.data?.errors ?? [] },
+        { status: error.code }
+      )
+    }
+
+    return NextResponse.json(
+      { error: "Unexpected server error" },
+      { status: 500 }
+    )
   }
 }
