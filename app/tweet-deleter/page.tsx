@@ -191,11 +191,18 @@ export default function TweetDeleterPage() {
   
       if (response.status === 429) {
         const data = await response.json();
+        const waitTimeInSeconds = Math.ceil(data.waitTime / 1000);
+        const resetTime = new Date(data.resetTime);
+        
         setError(
-          `Rate limit exceeded. Tweets will be automatically deleted after ${Math.ceil(
-            data.waitTime / 1000
-          )} seconds. Please wait...`
+          `Rate limit exceeded. Twitter API limits reached. Next deletion attempt will be possible at ${resetTime.toLocaleTimeString()}. Please wait approximately ${waitTimeInSeconds} seconds...`
         );
+
+        // Schedule automatic retry
+        setTimeout(() => {
+          setError(null);
+          deleteTweet(tweetId);
+        }, data.waitTime);
         return;
       }
   
