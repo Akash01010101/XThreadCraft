@@ -49,6 +49,7 @@ export default function TweetDeleterPage() {
 
   useEffect(() => {
     if (!session) {
+      setLoading(false);
       return;
     }
     console.log(session)
@@ -75,38 +76,43 @@ export default function TweetDeleterPage() {
     localStorage.setItem('tweetDeleterData', JSON.stringify(data));
   };
 
-  const fetchTweets = async () => {
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const fetchTweets = async (forceRefresh = false) => {
+    if (isRefreshing) return;
     setLoading(true);
+    setIsRefreshing(forceRefresh);
+    
     try {
-      const cachedTweets = getCachedData();
+      const cachedTweets = !forceRefresh ? getCachedData() : null;
       if (cachedTweets) {
         setTweets(cachedTweets);
         setError(null);
+        setLoading(false);
         return;
       }
-
+  
       // Verify session availability and validity
       if (!session) {
         setError('Session not available. Please refresh the page.');
         setLoading(false);
         return;
       }
-
+  
       if (!session?.accessToken || !session?.accessSecret) {
         setError('Missing Twitter authentication tokens.');
         setLoading(false);
         return;
       }
-
+  
       // Validate token expiration
       const tokenTimestamp = (session as ExtendedSession)?.tokenTimestamp;
-
+  
       if (tokenTimestamp && Date.now() - tokenTimestamp > 3600 * 1000) {
         setError("Authentication token expired. Please refresh the page.");
         setLoading(false);
         return;
       }
-
+  
       // Only proceed with API call if all checks pass
       const response = await fetch("/api/analytics?timeframe=3M", {
         headers: {
@@ -126,6 +132,7 @@ export default function TweetDeleterPage() {
       setError("Failed to load tweets. Please try again later.");
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   }
   const handleBulkDelete = async () => {
@@ -239,7 +246,7 @@ export default function TweetDeleterPage() {
         <div className="flex flex-col items-center gap-4 max-w-md text-center">
           <X className="w-12 h-12 text-destructive" />
           <p className="text-lg text-foreground">{error}</p>
-          <Button onClick={fetchTweets}>Try Again</Button>
+          <Button onClick={()=>fetchTweets}>Try Again</Button>
         </div>
       </div>
     )

@@ -60,10 +60,17 @@ export function AnimatedHero() {
   };
 
   // Define text parts
-  const headingPart1 = "Create Engaging ";
-  const headingPart2 = "Twitter Threads";
+  const headingPart1 = "Turn Consumption into ";
+  const headingPart2 = "Creation";
   const subheading =
-    "Design, write, and schedule your Twitter threads with our powerful thread creator";
+    "Transform your Twitter presence with AI-powered thread creation. Save time, boost engagement, and share knowledge effectively. Join 15,000+ creators who've increased their audience by 3x on average.";
+
+  const socialProof = {
+    users: "15,000+",
+    avgGrowth: "3x",
+    rating: "4.9/5",
+    testimonial: "Game-changing platform for content creators - @techinfluencer"
+  };
 
   // Calculate the number of words in each part for startIndex
   const headingPart1Words = headingPart1.trim().split(/\s+/).length;
@@ -114,11 +121,46 @@ export function AnimatedHero() {
             />
           </p>
 
+          {/* Social Proof */}
+          <motion.div 
+            className="flex justify-center gap-8 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div>
+              <p className="text-2xl font-bold text-primary">{socialProof.users}</p>
+              <p className="text-sm text-muted-foreground">Active Users</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-primary">{socialProof.avgGrowth}</p>
+              <p className="text-sm text-muted-foreground">Avg Growth</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-primary">{socialProof.rating}</p>
+              <p className="text-sm text-muted-foreground">User Rating</p>
+            </div>
+          </motion.div>
+
+          {/* Quick Testimonial */}
+          <motion.p 
+            className="text-lg text-muted-foreground mb-8 italic"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            &quot;{socialProof.testimonial}&quot;
+          </motion.p>
+
           {/* Buttons */}
           <div className="flex justify-center gap-4">
             <Link href="/thread">
-              <button className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8">
-                Free Forever
+              <motion.button 
+                className="inline-flex items-center justify-center rounded-md text-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-14 px-10"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Start Creating Now
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -129,14 +171,13 @@ export function AnimatedHero() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="ml-2 h-4 w-4"
+                  className="ml-2 h-5 w-5"
                 >
                   <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
                   <path d="m15 5 4 4" />
                 </svg>
-              </button>
+              </motion.button>
             </Link>
-            
           </div>
         </div>
       </div>

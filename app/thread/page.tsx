@@ -18,7 +18,7 @@ export default function ThreadPage() {
     if (status !== "loading" && !session) {
       router.push("/login");
     }
-
+    console.log(session)
   }
 , []);
 

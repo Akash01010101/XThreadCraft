@@ -22,32 +22,34 @@ import { ThreadPreview } from './components/thread-preview';
 import { CustomerReviews } from './components/customer-reviews';
 import { FAQSection } from './components/faq-section';
 import { motion } from 'framer-motion';
+import PricingPage from "./Pricing/page";
+import { AboutUs } from './components/about-us';
 
 
 const features = [
   {
     icon: Sparkles,
-    title: 'Smart Content Creation',
-    description: 'Automatically split your long-form content into perfectly sized tweets',
-    points: ['Optimize Copy for Threads with our AI', 'Distraction Free Editor', 'Add Images to Threads']
+    title: 'Free Thread Creation',
+    description: 'Create engaging threads without spending a dime',
+    points: ['AI-powered thread splitting', 'No subscription required', 'Unlimited thread creation']
   },
   {
     icon: Clock,
-    title: 'Schedule & Automate',
-    description: 'Plan your content ahead with advanced scheduling features',
-    points: ['Flexible scheduling options', 'Time zone optimization', 'Queue management']
+    title: 'Time-Saving Automation',
+    description: 'Eliminate hours of manual tweet management',
+    points: ['Bulk tweet deletion', 'Automated scheduling', 'Quick content organization']
   },
   {
     icon: BarChart3,
-    title: 'Analytics & Insights',
-    description: 'Track your thread performance with detailed analytics',
-    points: ['Engagement metrics', 'Audience insights', 'Performance dashboard']
+    title: 'Stress-Free Management',
+    description: 'Simplify your Twitter workflow with smart automation',
+    points: ['One-click tweet cleanup', 'Automated content planning', 'Effortless thread creation']
   },
   {
     icon: Users,
-    title: 'Team Collaboration',
-    description: 'Work together with your team seamlessly',
-    points: ['Real-time collaboration', 'Plan and Schedule Content in a single deep work session']
+    title: 'Cost-Effective Solution',
+    description: 'Get premium features without the premium price',
+    points: ['Free forever plan', 'No hidden fees', 'Professional-grade tools']
   },
 ];
 
@@ -56,8 +58,54 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       <AnimatedHero />
 
-      {/* Thread Preview Section */}
+      {/* Problem Agitation Section */}
       <section className="py-24 px-6 md:px-8 lg:px-12 bg-muted/50">
+        <div className="container mx-auto max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-4">Stop Wasting Time & Money</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Managing your Twitter presence shouldn't be a full-time job. See what you're missing with our free automation tools.
+            </p>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="p-6 rounded-lg bg-background shadow-lg"
+            >
+              <h3 className="text-xl font-semibold mb-4">Manual Tweet Management</h3>
+              <p className="text-muted-foreground">Spending hours manually deleting tweets and organizing content? Our automated tools do it in seconds - completely free.</p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="p-6 rounded-lg bg-background shadow-lg"
+            >
+              <h3 className="text-xl font-semibold mb-4">Expensive Tools</h3>
+              <p className="text-muted-foreground">Why pay for multiple tools when you can get thread creation, scheduling, and tweet management in one free platform?</p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="p-6 rounded-lg bg-background shadow-lg"
+            >
+              <h3 className="text-xl font-semibold mb-4">Time-Consuming Process</h3>
+              <p className="text-muted-foreground">Transform hours of manual work into minutes with our AI-powered automation - saving both time and stress.</p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Thread Preview Section */}
+      <section className="py-24 px-6 md:px-8 lg:px-12 bg-background">
         <div className="container mx-auto max-w-7xl text-center">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -65,13 +113,13 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
             className="text-4xl font-bold mb-16"
           >
-            Threads Preview
+            Transform Your Learning Through Creation
           </motion.h2>
           <ThreadPreview />
         </div>
       </section>
     {/* Navigation Cards Section */}
-    
+    <CustomerReviews />
       {/* Features Grid */}
       <section className="py-24 px-6 md:px-8 lg:px-12 bg-background">
         <div className="container mx-auto max-w-7xl">
@@ -122,9 +170,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <CustomerReviews />
-
       
+
+      <AboutUs />
+
+      <PricingPage/>
 
       <FAQSection />
 

@@ -8,26 +8,46 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
-const faqs = [
+type FAQ = {
+  question: string;
+  answer: string;
+};
+
+const faqs: FAQ[] = [
   {
-    question: 'What is XThreadCraft?',
-    answer: 'XThreadCraft is a comprehensive Twitter thread management platform that helps content creators design, write, and schedule their Twitter threads efficiently. It provides tools for content organization, scheduling, and analytics.'
+    question: 'What makes your platform different from other Twitter tools?',
+    answer:
+      'We focus specifically on helping you transform from a content consumer to a creator. Our AI-powered tools, distraction-free editor, and analytics are designed to make thread creation effortless while maximizing engagement. Plus, our core features are free forever.',
   },
   {
-    question: 'How does thread scheduling work?',
-    answer: 'With XThreadCraft, you can create threads in advance and schedule them to be posted at optimal times. Our platform automatically splits your content into perfectly formatted tweets and posts them at your specified times.'
+    question: 'Do I need a large following to start creating threads?',
+    answer:
+      'Not at all! Many of our users started with less than 100 followers and grew to 10K+ by consistently sharing valuable insights. Our analytics help you understand what resonates with your audience, allowing you to grow organically.',
   },
   {
-    question: 'Can I manage multiple Twitter accounts?',
-    answer: 'Yes! XThreadCraft supports multiple Twitter account management. You can easily switch between accounts and manage content for different audiences from a single dashboard.'
+    question: 'How does the AI-powered thread creation work?',
+    answer:
+      'Our AI analyzes your content, suggests optimal thread structure, and helps maintain engagement throughout. It can help break down complex topics, suggest engaging hooks, and even recommend the best posting times based on your audience.',
   },
   {
-    question: 'What analytics does XThreadCraft provide?',
-    answer: 'XThreadCraft offers comprehensive analytics including engagement rates, best posting times, audience growth, and content performance metrics to help you optimize your Twitter strategy.'
+    question: 'What are the pricing plans?',
+    answer:
+      'Our core features are free forever, including thread creation, scheduling, and basic analytics. For power users, we offer a Pro plan at $7/month with advanced features like AI assistance, team collaboration, and detailed analytics. We also offer a 30-day money-back guarantee.',
   },
   {
-    question: 'Is there a free plan available?',
-    answer: 'Yes, we offer a free plan that includes basic thread creation and scheduling features. For advanced features like analytics and multiple account management, check out our premium plans.'
+    question: 'How secure is my content on your platform?',
+    answer:
+      'We take security seriously. Your content is encrypted, we never store your Twitter passwords, and we use secure OAuth for authentication. You maintain full control of your content and can export or delete it anytime.',
+  },
+  {
+    question: 'Do you offer customer support?',
+    answer:
+      'Yes! We provide 24/7 email support for all users, with priority support for Pro members. Our help center is regularly updated with guides and best practices, and we host weekly workshops for our community.',
+  },
+  {
+    question: 'Can I schedule threads in advance?',
+    answer:
+      'Absolutely! You can schedule threads for optimal posting times, manage your content calendar, and even set up automated posting sequences. Our analytics help you identify the best times to post for maximum engagement.',
   }
 ];
 
@@ -54,21 +74,20 @@ export function FAQSection() {
         >
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <AccordionItem value={`item-${index}`}>
+              <AccordionItem key={`faq-${index}`} value={`item-${index}`}>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
                   <AccordionTrigger className="text-left">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
                     {faq.answer}
                   </AccordionContent>
-                </AccordionItem>
-              </motion.div>
+                </motion.div>
+              </AccordionItem>
             ))}
           </Accordion>
         </motion.div>

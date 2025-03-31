@@ -89,7 +89,7 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <div className="mb-6">
-                    <span className="text-4xl font-bold">$5</span>
+                    <span className="text-4xl font-bold">$7</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
                   <ul className="space-y-3">
