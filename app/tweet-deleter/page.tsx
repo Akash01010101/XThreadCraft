@@ -262,7 +262,17 @@ export default function TweetDeleterPage() {
 
         <Card className="bg-card border-border mb-8">
           <CardHeader>
-            <CardTitle>Delete Your Tweets</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle>Delete Your Tweets</CardTitle>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fetchTweets(true)}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
