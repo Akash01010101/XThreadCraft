@@ -69,7 +69,7 @@ export default function HomePage() {
           >
             <h2 className="text-4xl font-bold mb-4">Stop Wasting Time & Money</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Managing your Twitter presence shouldn't be a full-time job. See what you're missing with our free automation tools.
+              Managing your Twitter presence shouldn&apos;t be a full-time job. See what you&apos;re missing with our free automation tools.
             </p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
