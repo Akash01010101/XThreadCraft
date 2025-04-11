@@ -1,5 +1,7 @@
 'use client'
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { RefundPolicyCheckbox } from "../components/refund-policy-checkbox";
 import {
   Card,
   CardContent,
@@ -11,8 +13,33 @@ import {
 import { Check } from "lucide-react";
 import { AnimatedSection, AnimatedList } from "../components/animated-section";
 import { motion } from "framer-motion";
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export default function PricingPage() {
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState('');
+  const [isRefundPolicyAccepted, setIsRefundPolicyAccepted] = useState(false);
+
+  const handleRefundPolicyChange = async (checked: boolean) => {
+    setIsRefundPolicyAccepted(checked);
+    if (checked) {
+      try {
+        const response = await fetch('/api/chat-usage/update-tos', {
+          method: 'POST',
+        });
+        if (!response.ok) {
+          console.error('Failed to update terms acceptance');
+        }
+      } catch (error) {
+        console.error('Error updating terms acceptance:', error);
+      }
+    }
+  };
+
+  const handleVerificationSuccess = () => {
+    window.location.href = 'https://payhip.com/order?link=13jzL';
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <AnimatedSection className="py-16 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
@@ -84,23 +111,23 @@ export default function PricingPage() {
             >
               <Card className="h-full border-primary shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-2xl">Pro Plan</CardTitle>
-                  <CardDescription>For power users</CardDescription>
+                  <CardTitle className="text-2xl">Lifetime Pro</CardTitle>
+                  <CardDescription>One-time payment, lifetime access</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <div className="mb-6">
-                    <span className="text-4xl font-bold">$7</span>
-                    <span className="text-muted-foreground">/month</span>
+                    <span className="text-4xl font-bold">$49</span>
+                    <span className="text-muted-foreground">/lifetime</span>
                   </div>
                   <ul className="space-y-3">
                     {[
-                      "Unlimited Verifications",
-                      "Advanced Content Editor",
+                      "Unlimited Verifications Forever",
+                      "Premium Content Editor",
                       "Unlimited Thread Creation",
-                      "Advanced Analytics",
+                      "Advanced Analytics Dashboard",
                       "Priority Support",
-                      "Team Collaboration",
-                      "Early Access to New Features"
+                      "Team Collaboration Features",
+                      "Lifetime Access to All Features"
                     ].map((feature, idx) => (
                       <motion.li
                         key={idx}
@@ -116,11 +143,32 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button 
-                    className="w-full bg-primary hover:bg-primary/90"
-                  >
-                    Upgrade to Pro
-                  </Button>
+                  <div className="space-y-4 w-full">
+                    <RefundPolicyCheckbox onCheckedChange={handleRefundPolicyChange} />
+                    {isVerifying ? (
+                      <div className="flex flex-col items-center space-y-2">
+                        <Turnstile
+                          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAABAEkEFDDIn7oklG'}
+                          onSuccess={handleVerificationSuccess}
+                          onError={(error) => {
+                            setVerificationError(error);
+                            setIsVerifying(false);
+                          }}
+                        />
+                        {verificationError && (
+                          <p className="text-sm text-red-500">{verificationError}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <Button 
+                        className="w-full bg-primary hover:bg-primary/90"
+                        onClick={() => setIsVerifying(true)}
+                        disabled={!isRefundPolicyAccepted}
+                      >
+                        Get Lifetime Access
+                      </Button>
+                    )}
+                  </div>
                 </CardFooter>
               </Card>
             </motion.div>
@@ -138,16 +186,16 @@ export default function PricingPage() {
                 answer: "The free plan includes 2 verifications per day, basic content editing features, thread creation, and basic analytics. It's perfect for casual users."
               },
               {
-                question: "Can I upgrade or downgrade at any time?",
-                answer: "Yes! You can upgrade to the Pro plan whenever you need more features, or downgrade back to the free plan at any time."
+                question: "Is this really a one-time payment?",
+                answer: "Yes! Pay once and get lifetime access to all Pro features. No recurring fees or hidden charges."
               },
               {
                 question: "Do you offer refunds?",
-                answer: "Yes, we offer a 30-day money-back guarantee for our Pro plan. If you're not satisfied, we'll refund your payment."
+                answer: "Yes, we offer a 30-day money-back guarantee. If you're not satisfied with your purchase, we'll refund your payment."
               },
               {
-                question: "Is there a long-term contract?",
-                answer: "No, our Pro plan is billed monthly and you can cancel at any time. There are no long-term commitments required."
+                question: "What happens after I purchase?",
+                answer: "After your payment is processed, you'll get immediate access to all Pro features forever. No additional payments required."
               }
             ].map((faq, idx) => (
               <motion.div
