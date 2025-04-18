@@ -13,7 +13,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('chat_usage')
-      .select('verification_count')
+      .select('verification_count, isPaid')
       .eq('user_id', session.user.email)
       .single();
 
@@ -23,11 +23,11 @@ export async function GET() {
     }
 
     // Check if user has exceeded verification limit
-    if (data?.verification_count >= 3) {
+    if (data?.verification_count >= 3 && !data?.isPaid) {
       return NextResponse.json({ error: 'Verification limit exceeded' }, { status: 403 });
     }
 
-    return NextResponse.json({ count: data?.verification_count || 0 });
+    return NextResponse.json({ count: data?.verification_count || 0  , isPaid:data.isPaid });
   } catch (error) {
     console.error('Error in verification count endpoint:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

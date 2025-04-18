@@ -31,12 +31,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const userId = session.user.id;
+      const userId = session.user.email;
 
       // Fetch current verification count
       const { data: userData, error: fetchError } = await supabase
         .from('chat_usage')
-        .select('verification_count')
+        .select('verification_count, isPaid')
         .eq('user_id', userId)
         .single();
 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 });
       }
 
-      if (userData && userData.verification_count >= 2) {
+      if (userData && userData.verification_count >= 2 && !userData.isPaid) {
         return NextResponse.json({ success: false, error: 'Verification limit reached' }, { status: 403 });
       }
 

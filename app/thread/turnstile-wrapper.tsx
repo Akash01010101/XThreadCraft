@@ -16,6 +16,7 @@ export function TurnstileWrapper({ children }: TurnstileWrapperProps) {
   const [verificationCount, setVerificationCount] = useState(0);
   const [showPricing, setShowPricing] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -24,6 +25,7 @@ export function TurnstileWrapper({ children }: TurnstileWrapperProps) {
         const response = await fetch('/api/chat-usage/verification-count');
         const data = await response.json();
         setVerificationCount(data.count || 0);
+        setIsPaid(data.isPaid || false);
       } catch (error) {
         console.error('Error fetching verification count:', error);
       }
@@ -42,7 +44,7 @@ export function TurnstileWrapper({ children }: TurnstileWrapperProps) {
       });
 
       const data = await response.json();
-      if (response.status === 403 || verificationCount >= 2) {
+      if (response.status === 403 || verificationCount > 2 && !isPaid ) {
         setShowPricing(true);
       } else if (data.success) {
         setVerified(true);
