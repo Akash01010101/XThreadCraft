@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 });
       }
 
-      if (userData && userData.verification_count >= 2 && !userData.isPaid) {
+      if (userData && userData.verification_count >= 3 && !userData.isPaid) {
         return NextResponse.json({ success: false, error: 'Verification limit reached' }, { status: 403 });
       }
 
