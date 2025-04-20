@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
@@ -15,7 +16,7 @@ interface CachedData {
   tweets: Tweet[];
   timestamp: number;
 }
-const CACHE_DURATION = 1000 * 60 * 60 *2; // 1 hour in milliseconds
+const CACHE_DURATION = 1000 * 60 * 60 *2; 
 export default function AnalyticsPage() {
   const { data: session, status } = useSession();
   const [tweets, setTweets] = useState<Tweet[]>([]);
