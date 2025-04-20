@@ -6,12 +6,12 @@ export default withAuth({
   },
 });
 
-// Configure the middleware to protect the /thread, /account, /analytics and all API routes
+// Configure the middleware to protect the /thread, /account, /analytics and all API routes except /api/schedule
 export const config = {
   matcher: [
     '/thread',
     '/account',
     '/analytics',
-    '/api/:path*', // Protect all API routes
+    '/((?!api/schedule).*)', // Exclude /api/schedule from protection
   ],
 };
