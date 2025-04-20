@@ -1,7 +1,6 @@
-"use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { AnalyticsDashboard } from "./components/AnalyticsDashboard";
+import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 interface Tweet {
   id: string;
   text: string;

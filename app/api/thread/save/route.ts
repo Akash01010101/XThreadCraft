@@ -139,20 +139,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
-
-
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    const { data, error } = await supabase
+    const { data: threads, error } = await supabase
       .from('threads')
       .select('*')
       .eq('user_id', userId)
@@ -163,7 +159,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ threads: data });
+    return NextResponse.json({ threads });
 
   } catch (error) {
     console.error('Error:', error);

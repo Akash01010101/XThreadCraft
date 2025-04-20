@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { createPortal } from 'react-dom';
-import PricingPage from '../Pricing/page';
+import PricingPage from '../app/Pricing/page';
 
 interface TurnstileWrapperProps {
   children: React.ReactNode;

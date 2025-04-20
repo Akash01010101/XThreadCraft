@@ -86,7 +86,10 @@ export async function GET() {
             try {
               // Convert base64 to buffer
               const imageBuffer = Buffer.from(t.imageBase64.split(',')[1], 'base64');
-              const mediaId = await client.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
+              // Detect if the image is a GIF by checking the base64 header
+              const isGif = t.imageBase64.startsWith('data:image/gif');
+              const mimeType = isGif ? 'image/gif' : 'image/png';
+              const mediaId = await client.v1.uploadMedia(imageBuffer, { mimeType });
               tweet.media = { media_ids: [mediaId] };
             } catch (mediaError) {
               console.error('Error uploading image:', mediaError);

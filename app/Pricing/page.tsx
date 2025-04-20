@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { RefundPolicyCheckbox } from "../components/refund-policy-checkbox";
+import { RefundPolicyCheckbox } from "@/components/refund-policy-checkbox";
 import {
   Card,
   CardContent,
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Check } from "lucide-react";
-import { AnimatedSection, AnimatedList } from "../components/animated-section";
+import { AnimatedSection, AnimatedList } from "@/components/animated-section";
 import { motion } from "framer-motion";
 import { Turnstile } from '@marsidev/react-turnstile';
 

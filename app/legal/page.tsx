@@ -1,9 +1,7 @@
-'use client';
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Lock, Eye, Database } from "lucide-react";
-import { AnimatedSection, AnimatedList } from "../components/animated-section";
-import { motion } from "framer-motion";
+import { AnimatedSection, AnimatedList } from "@/components/animated-section";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -16,46 +14,32 @@ export default function PrivacyPolicyPage() {
               Last updated: January 2024
             </p>
           </div>
-
           <AnimatedList className="grid gap-8" staggerDelay={0.1}>
             {sections.map((section, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Card>
+                <Card key={index}>
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4 mb-4">
-                      <motion.div
-                        whileHover={{ rotate: 15 }}
-                        className="p-2 rounded-lg bg-primary/10"
-                      >
                         <section.icon className="h-5 w-5 text-primary" />
-                      </motion.div>
                       <div>
                         <h2 className="text-2xl font-semibold mb-2">{section.title}</h2>
                         <p className="text-muted-foreground mb-4">{section.description}</p>
                         <div className="space-y-4">
                           {section.content.map((paragraph, idx) => (
-                            <motion.div
+                            <div
                               key={idx}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 + idx * 0.1 }}
                             >
                               {paragraph.subtitle && (
                                 <h3 className="font-medium text-lg mb-2">{paragraph.subtitle}</h3>
                               )}
                               <p className="text-muted-foreground">{paragraph.text}</p>
-                            </motion.div>
+                            </div>
                           ))}
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+             
             ))}
           </AnimatedList>
 
@@ -73,7 +57,6 @@ export default function PrivacyPolicyPage() {
     </div>
   );
 }
-
 const sections = [
   {
     title: "Data Collection",

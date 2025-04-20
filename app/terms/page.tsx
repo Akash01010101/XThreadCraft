@@ -1,9 +1,7 @@
-'use client';
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Scale, FileText, AlertCircle, UserCheck } from "lucide-react";
-import { AnimatedSection, AnimatedList } from "../components/animated-section";
-import { motion } from "framer-motion";
+import { AnimatedSection, AnimatedList } from "@/components/animated-section";
 
 export default function TermsOfServicePage() {
   return (
@@ -19,57 +17,43 @@ export default function TermsOfServicePage() {
 
           <AnimatedList className="grid gap-8" staggerDelay={0.1}>
             {sections.map((section, index) => (
-              <motion.div
+              <div
                 key={index}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
               >
                 <Card className="transform transition-all duration-300 hover:shadow-lg hover:bg-accent/5 group">
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">
-                      <motion.div
-                        whileHover={{ rotate: 15 }}
-                        className="p-2 rounded-lg bg-primary/10 transition-all duration-300 group-hover:bg-primary/20"
-                      >
+                      <div className="p-2 rounded-lg bg-primary/10 transition-all duration-300 group-hover:bg-primary/20">
                         <section.icon className="h-5 w-5 text-primary" />
-                      </motion.div>
+                      </div>
                       <div>
                         <h2 className="text-2xl font-semibold mb-2">{section.title}</h2>
                         <p className="text-muted-foreground mb-4">{section.description}</p>
                         <div className="space-y-6">
                           {section.clauses.map((clause, idx) => (
-                            <motion.div
-                              key={idx}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 + idx * 0.1 }}
-                              className="space-y-2"
-                            >
+                            <div key={idx} >
                               <h3 className="font-medium text-lg">{clause.title}</h3>
                               <p className="text-muted-foreground">{clause.content}</p>
                               {clause.subclauses && (
                                 <ul className="list-disc list-inside space-y-2 mt-2 ml-4 text-muted-foreground">
                                   {clause.subclauses.map((subclause, subIdx) => (
-                                    <motion.li
+                                    <li
                               className="transition-all duration-300 group-hover:text-primary/90"
                                       key={subIdx}
-                                      initial={{ opacity: 0, x: -10 }}
-                                      animate={{ opacity: 1, x: 0 }}
-                                      transition={{ delay: index * 0.1 + idx * 0.1 + subIdx * 0.05 }}
                                     >
                                       {subclause}
-                                    </motion.li>
+                                    </li>
                                   ))}
                                 </ul>
                               )}
-                            </motion.div>
+                            </div>
                           ))}
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             ))}
           </AnimatedList>
 

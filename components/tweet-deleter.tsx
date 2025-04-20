@@ -38,7 +38,7 @@ interface ExtendedSession {
   tokenTimestamp?: number;
 }
 
-export default function TweetDeleterPage() {
+export default function TweetDeleter() {
   const [tweets, setTweets] = useState<Tweet[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")

@@ -37,7 +37,7 @@ export function SavedThreads() {
 
       try {
         const response = await fetch(
-          `/api/thread/saved?userId=${encodeURIComponent(session.user.email)}`
+          `/api/thread/save?userId=${encodeURIComponent(session.user.email)}`
         );
         if (!response.ok) throw new Error("Failed to fetch threads");
 

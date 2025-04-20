@@ -10,11 +10,12 @@ import { ImageIcon, SaveIcon, Loader2, BarChart } from "lucide-react";
 import { ThreadPreview } from "./thread-preview";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import SearchExperience from "../test/page";
+import SearchExperience from "../app/test/page";
 
 interface Tweet {
   content: string;
   imageFile?: File;
+  imageUrl?: string;
 }
 
 export function ThreadComposer() {
@@ -75,10 +76,16 @@ export function ThreadComposer() {
   const handleAddTweet = () => {
     if (content.trim() || currentImageFile) {
       const splitContent = splitTweet(content);
-      const newTweets: Tweet[] = splitContent.map((tweetContent, index) => ({
-        content: tweetContent,
-        imageFile: index === 0 && currentImageFile ? currentImageFile : undefined,
-      }));
+      const newTweets: Tweet[] = splitContent.map((tweetContent, index) => {
+        const tweet: Tweet = {
+          content: tweetContent,
+          imageFile: index === 0 && currentImageFile ? currentImageFile : undefined,
+        };
+        if (tweet.imageFile) {
+          tweet.imageUrl = URL.createObjectURL(tweet.imageFile);
+        }
+        return tweet;
+      });
       setTweets([...tweets, ...newTweets]);
       setContent("");
       setCurrentImageFile(null);
