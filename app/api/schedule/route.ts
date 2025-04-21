@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { TwitterApi, SendTweetV2Params } from "twitter-api-v2";
 
 interface ThreadContent {
@@ -31,6 +31,7 @@ async function getTwitterClient(userAccessToken: string, userAccessSecret: strin
 
 export async function GET() {
   try {
+     const supabase = getSupabaseClient();
     console.log("Checking for scheduled tweets...");
 
     // Fetch threads that are scheduled but not posted

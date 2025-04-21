@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
-
+import { getSupabaseClient } from "@/lib/supabase";
+const supabase = getSupabaseClient();
 interface ThreadContent {
   content: string;
   imageBase64?: string;
@@ -17,6 +17,7 @@ interface ThreadData {
 
 
 export async function DELETE(request: Request) {
+  
   try {
     const url = new URL(request.url);
     const threadId = url.searchParams.get('threadId');

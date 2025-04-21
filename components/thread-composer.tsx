@@ -11,7 +11,7 @@ import { ThreadPreview } from "./thread-preview";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import SearchExperience from "../app/test/page";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 
 interface Tweet {
   content: string;
@@ -28,7 +28,7 @@ export function ThreadComposer() {
   const [isPosting, setIsPosting] = useState<boolean>(false);
   const [title, setTitle] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
-
+  const supabase = getSupabaseClient(session?.supabaseAccessToken);
   useEffect(() => {
     const savedThread = localStorage.getItem('draftThread');
     if (savedThread) {
