@@ -169,62 +169,68 @@ export function ThreadComposer() {
   };
   
 
-
   const handleSubmit = async () => {
-    if (!session) {
-      console.error("User not authenticated.");
-      return;
-    }
-
+    if (!session) return console.error("User not authenticated.");
+  
     const userAccessToken = session?.accessToken;
     const userAccessSecret = session?.accessSecret;
-
     if (!userAccessToken || !userAccessSecret) {
-      console.error("Missing Twitter authentication tokens.");
-      return;
+      return console.error("Missing Twitter tokens.");
     }
-
+  
     try {
-      if (tweets.length === 0) {
-        console.error("No tweets to post.");
-        setIsPosting(false);
-        return;
-      }
-
+      if (tweets.length === 0) return console.error("No tweets to post.");
+  
       setIsPosting(true);
-      const formData = new FormData();
-
-      tweets.forEach((tweet, index) => {
-        formData.append(`tweets[${index}][content]`, tweet.content);
-        if (tweet.imageUrl) {
-          formData.append(`tweets[${index}][imageUrl]`, tweet.imageUrl);
-        }
-      });
-
-      formData.append("userAccessToken", userAccessToken);
-      formData.append("userAccessSecret", userAccessSecret);
-
+  
+      // Upload any images that are File objects and get their URLs
+      const tweetsWithImageUrls = await Promise.all(
+        tweets.map(async (tweet) => {
+          if (tweet.imageFile) {
+            const fileName = `${Date.now()}-${tweet.imageFile.name}`;
+            const { error } = await supabase.storage
+              .from("thread-images")
+              .upload(fileName, tweet.imageFile);
+  
+            if (error) throw error;
+  
+            const publicUrl = supabase.storage
+              .from("thread-images")
+              .getPublicUrl(fileName).data.publicUrl;
+  
+            return { content: tweet.content, imageUrl: publicUrl };
+          }
+          return { content: tweet.content };
+        })
+      );
+  
+      // Use JSON instead of FormData now
       const response = await fetch("/api/thread", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userAccessToken,
+          userAccessSecret,
+          tweets: tweetsWithImageUrls,
+        }),
       });
-
+  
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Error response:", response.status, response.statusText, errorText);
-        throw new Error(`Failed to post thread: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(`Failed to post thread: ${response.status} ${errorText}`);
       }
-
+  
       const data = await response.json();
       console.log("Thread posted:", data);
       setTweets([]);
     } catch (error) {
-      console.error("Error details:", error);
+      console.error("Error posting thread:", error);
     } finally {
       setIsPosting(false);
     }
   };
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <motion.div

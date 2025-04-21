@@ -1,13 +1,12 @@
-
 import { NextResponse } from "next/server";
-import { TwitterApi, SendTweetV2Params } from "twitter-api-v2";
+import { TwitterApi, SendTweetV2Params } from "twitter-api-v2"; // if you're not using node-fetch, the built-in fetch works too in Next.js API routes
 
-// Function to create a Twitter API client dynamically for each user
+// Create Twitter client
 async function getTwitterClient(userAccessToken: string, userAccessSecret: string): Promise<TwitterApi> {
   if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET) {
-    throw new Error('Twitter API credentials are not configured');
+    throw new Error("Twitter API credentials are not configured");
   }
-  
+
   return new TwitterApi({
     appKey: process.env.TWITTER_API_KEY,
     appSecret: process.env.TWITTER_API_SECRET,
@@ -20,12 +19,8 @@ export async function POST(request: Request) {
   try {
     console.log("API request received...");
 
-    const formData = await request.formData();
-    console.log("FormData parsed:", formData);
-
-    // Extract user authentication tokens
-    const userAccessToken = formData.get("userAccessToken") as string;
-    const userAccessSecret = formData.get("userAccessSecret") as string;
+    const body = await request.json();
+    const { userAccessToken, userAccessSecret, tweets } = body;
 
     if (!userAccessToken || !userAccessSecret) {
       console.error("Missing user credentials");
@@ -33,45 +28,41 @@ export async function POST(request: Request) {
     }
 
     console.log("User credentials received, initializing Twitter API client...");
-
-    // Create a Twitter client for the authenticated user
     const client = await getTwitterClient(userAccessToken, userAccessSecret);
     console.log("Twitter API client initialized.");
 
-    // Extract tweets dynamically
-    const tweets: SendTweetV2Params[] = [];
-    let i = 0;
+    const preparedTweets: SendTweetV2Params[] = [];
 
-    while (formData.has(`tweets[${i}][content]`)) {
-      const tweetText = formData.get(`tweets[${i}][content]`);
-      if (!tweetText || typeof tweetText !== 'string') continue;
+    for (let i = 0; i < tweets.length; i++) {
+      const { content, imageUrl } = tweets[i];
+      const tweet: SendTweetV2Params = { text: content };
 
-      const tweet: SendTweetV2Params = { text: tweetText };
-      const imageFile = formData.get(`tweets[${i}][imageFile]`);
-
-      if (imageFile && imageFile instanceof File && imageFile.size > 0) {
+      if (imageUrl) {
         try {
-          console.log(`Uploading image for tweet ${i}...`);
-          const buffer = Buffer.from(await imageFile.arrayBuffer());
-          const mediaId = await client.v1.uploadMedia(buffer, { mimeType: imageFile.type });
+          console.log(`Downloading image for tweet ${i} from URL: ${imageUrl}`);
+          const response = await fetch(imageUrl);
+          const buffer = Buffer.from(await response.arrayBuffer());
+          const contentType = response.headers.get("content-type") || "image/jpeg";
+
+          console.log(`Uploading image to Twitter for tweet ${i}...`);
+          const mediaId = await client.v1.uploadMedia(buffer, { mimeType: contentType });
           tweet.media = { media_ids: [mediaId] as [string] };
-          console.log(`Image uploaded successfully for tweet ${i}: ${mediaId}`);
+          console.log(`Image uploaded for tweet ${i}: ${mediaId}`);
         } catch (mediaError) {
-          console.error(`Error uploading image for tweet ${i}:`, mediaError);
+          console.error(`Error processing image for tweet ${i}:`, mediaError);
         }
       }
-      tweets.push(tweet);
-      i++;
+
+      preparedTweets.push(tweet);
     }
 
-    console.log("Total tweets to post:", tweets.length);
-    if (tweets.length === 0) {
+    if (preparedTweets.length === 0) {
       console.error("No tweets to post.");
       return NextResponse.json({ success: false, error: "No tweets to post" }, { status: 400 });
     }
 
     console.log("Posting thread to Twitter...");
-    const thread = await client.v2.tweetThread(tweets);
+    const thread = await client.v2.tweetThread(preparedTweets);
     console.log("Thread posted successfully!", thread);
 
     return NextResponse.json({ success: true, thread });
