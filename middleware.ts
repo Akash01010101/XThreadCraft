@@ -12,6 +12,6 @@ export const config = {
     '/thread',
     '/account',
     '/analytics',
-    '/((?!api/schedule).*)', // Exclude /api/schedule from protection
+    '/api((?!/schedule).*)', // Exclude /api/schedule from protection
   ],
 };
