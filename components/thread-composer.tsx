@@ -124,7 +124,7 @@ export function ThreadComposer() {
         tweets.map(async (tweet) => {
           if (tweet.imageFile) {
             const fileName = `${Date.now()}-${tweet.imageFile.name}`;
-            const { data, error } = await supabase.storage
+            const {  error } = await supabase.storage
               .from('thread-images')
               .upload(fileName, tweet.imageFile);
 
