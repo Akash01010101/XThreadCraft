@@ -1,4 +1,4 @@
-'use server';
+
 import { NextResponse } from "next/server";
 import { TwitterApi, SendTweetV2Params } from "twitter-api-v2";
 

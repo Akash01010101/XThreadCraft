@@ -58,6 +58,14 @@ export async function DELETE(request: Request) {
   }
 }
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb'
+    }
+  }
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json() as ThreadData;

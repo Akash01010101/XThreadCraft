@@ -11,6 +11,7 @@ import { ThreadPreview } from "./thread-preview";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import SearchExperience from "../app/test/page";
+import { compressImage, blobToFile } from "@/lib/image-utils";
 
 interface Tweet {
   content: string;
@@ -92,9 +93,17 @@ export function ThreadComposer() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setCurrentImageFile(e.target.files[0]);
+      const file = e.target.files[0];
+      try {
+        const compressedBlob = await compressImage(file);
+        const compressedFile = blobToFile(compressedBlob, file.name);
+        setCurrentImageFile(compressedFile);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        alert('Failed to process image. Please try a different image.');
+      }
     }
   };
 
