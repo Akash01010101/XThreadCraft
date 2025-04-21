@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import { TwitterApi, SendTweetV2Params } from "twitter-api-v2";
 
 interface ThreadContent {
   content: string;
-  imageBase64?: string;
+  imageUrl?: string;
 }
 
 interface Thread {
@@ -19,11 +19,6 @@ interface Thread {
   access_secret?: string;
 }
 
-// Initialize Supabase
-const supabase = createClient(
-  process.env.PUBLIC_SUPABASE_URL!,
-  process.env.PUBLIC_SUPABASE_ANON_KEY!
-);
 
 async function getTwitterClient(userAccessToken: string, userAccessSecret: string): Promise<TwitterApi> {
   return new TwitterApi({
@@ -81,15 +76,13 @@ export async function GET() {
         for (const t of thread.content) {
           const tweet: SendTweetV2Params = { text: t.content };
           
-          // If there's a base64 image, upload it
-          if (t.imageBase64) {
+          // If there's an image URL, upload it
+          if (t.imageUrl) {
             try {
-              // Convert base64 to buffer
-              const imageBuffer = Buffer.from(t.imageBase64.split(',')[1], 'base64');
-              // Detect if the image is a GIF by checking the base64 header
-              const isGif = t.imageBase64.startsWith('data:image/gif');
-              const mimeType = isGif ? 'image/gif' : 'image/png';
-              const mediaId = await client.v1.uploadMedia(imageBuffer, { mimeType });
+              const response = await fetch(t.imageUrl);
+              const imageBuffer = await response.arrayBuffer();
+              const mimeType = response.headers.get('content-type') || 'image/jpeg';
+              const mediaId = await client.v1.uploadMedia(Buffer.from(imageBuffer), { mimeType });
               tweet.media = { media_ids: [mediaId] };
             } catch (mediaError) {
               console.error('Error uploading image:', mediaError);

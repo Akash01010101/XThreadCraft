@@ -11,7 +11,7 @@ import { ThreadPreview } from "./thread-preview";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import SearchExperience from "../app/test/page";
-import { compressImage, blobToFile } from "@/lib/image-utils";
+import { supabase } from "@/lib/supabase";
 
 interface Tweet {
   content: string;
@@ -93,17 +93,9 @@ export function ThreadComposer() {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      try {
-        const compressedBlob = await compressImage(file);
-        const compressedFile = blobToFile(compressedBlob, file.name);
-        setCurrentImageFile(compressedFile);
-      } catch (error) {
-        console.error('Error compressing image:', error);
-        alert('Failed to process image. Please try a different image.');
-      }
+      setCurrentImageFile(e.target.files[0]);
     }
   };
 
@@ -111,7 +103,6 @@ export function ThreadComposer() {
     if (!session?.user?.email) {
       console.log("Session:", session);
       console.error("User not authenticated.");
-      
       return;
     }
   
@@ -128,12 +119,22 @@ export function ThreadComposer() {
     try {
       setIsSaving(true);
   
-      // Convert images to base64
-      const tweetsWithBase64 = await Promise.all(
+      // Upload images to Supabase and get URLs
+      const tweetsWithUrls = await Promise.all(
         tweets.map(async (tweet) => {
           if (tweet.imageFile) {
-            const base64Image = await convertFileToBase64(tweet.imageFile);
-            return { content: tweet.content, imageBase64: base64Image };
+            const fileName = `${Date.now()}-${tweet.imageFile.name}`;
+            const { data, error } = await supabase.storage
+              .from('thread-images')
+              .upload(fileName, tweet.imageFile);
+
+            if (error) throw error;
+
+            const imageUrl = supabase.storage
+              .from('thread-images')
+              .getPublicUrl(fileName).data.publicUrl;
+
+            return { content: tweet.content, imageUrl };
           }
           return { content: tweet.content };
         })
@@ -147,7 +148,7 @@ export function ThreadComposer() {
         body: JSON.stringify({
           userId: session.user.email,
           title: title.trim(),
-          content: tweetsWithBase64,
+          content: tweetsWithUrls,
           accessToken: session.accessToken,
           accessSecret: session.accessSecret,
         }),
@@ -167,16 +168,7 @@ export function ThreadComposer() {
     }
   };
   
-  // Utility function to convert a file to Base64
-  const convertFileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-  
+
 
   const handleSubmit = async () => {
     if (!session) {
@@ -204,8 +196,8 @@ export function ThreadComposer() {
 
       tweets.forEach((tweet, index) => {
         formData.append(`tweets[${index}][content]`, tweet.content);
-        if (tweet.imageFile) {
-          formData.append(`tweets[${index}][imageFile]`, tweet.imageFile);
+        if (tweet.imageUrl) {
+          formData.append(`tweets[${index}][imageUrl]`, tweet.imageUrl);
         }
       });
 

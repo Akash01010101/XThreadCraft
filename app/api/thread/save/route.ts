@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from "@/lib/supabase";
 
 interface ThreadContent {
   content: string;
@@ -15,19 +15,6 @@ interface ThreadData {
   accessSecret?: string;
 }
 
-// Log environment variables at startup
-console.log('Checking Supabase environment variables...');
-console.log('PUBLIC_SUPABASE_URL:', process.env.PUBLIC_SUPABASE_URL ? 'Present' : 'Missing');
-console.log('PUBLIC_SUPABASE_ANON_KEY:', process.env.PUBLIC_SUPABASE_ANON_KEY ? 'Present' : 'Missing');
-
-if (!process.env.PUBLIC_SUPABASE_URL || !process.env.PUBLIC_SUPABASE_ANON_KEY) {
-  throw new Error('Supabase environment variables are not configured');
-}
-
-const supabase = createClient(
-  process.env.PUBLIC_SUPABASE_URL,
-  process.env.PUBLIC_SUPABASE_ANON_KEY
-);
 
 export async function DELETE(request: Request) {
   try {
@@ -57,14 +44,6 @@ export async function DELETE(request: Request) {
     );
   }
 }
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb'
-    }
-  }
-};
 
 export async function POST(request: Request) {
   try {
