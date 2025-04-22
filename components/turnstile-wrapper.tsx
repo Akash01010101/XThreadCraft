@@ -70,7 +70,7 @@ export function TurnstileWrapper({ children }: TurnstileWrapperProps) {
             <h2 className="text-2xl font-bold mb-4">Please Verify to Access Chat</h2>
             <div className="flex justify-center">
               <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAABAEkEFDDIn7oklG'}
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
                 onSuccess={handleSuccess}
                 onError={() => {
                   setShowError(true);
