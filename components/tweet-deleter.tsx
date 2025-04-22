@@ -56,7 +56,7 @@ export default function TweetDeleter() {
     fetchTweets()
   }, [session])
 
-  const CACHE_DURATION = 1000 * 60 * 60 * 2; // 4 hours in milliseconds
+  const CACHE_DURATION = 1000 * 60 * 60 * 6; // 4 hours in milliseconds
 
   const getCachedData = (): Tweet[] | null => {
     const cachedData = localStorage.getItem('tweetDeleterData');
