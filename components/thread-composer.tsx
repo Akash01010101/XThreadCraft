@@ -11,14 +11,13 @@ import { ThreadPreview } from "./thread-preview";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import SearchExperience from "../app/test/page";
-import { getSupabaseClient } from "@/lib/supabase";
-
+import { BlobServiceClient, BlockBlobClient } from "@azure/storage-blob";
 interface Tweet {
   content: string;
   imageFile?: File;
   imageUrl?: string;
 }
-
+const containerName = "test";
 export function ThreadComposer() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
@@ -28,7 +27,7 @@ export function ThreadComposer() {
   const [isPosting, setIsPosting] = useState<boolean>(false);
   const [title, setTitle] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const supabase = getSupabaseClient(session?.supabaseAccessToken);
+
   useEffect(() => {
     const savedThread = localStorage.getItem('draftThread');
     if (savedThread) {
@@ -92,48 +91,66 @@ export function ThreadComposer() {
       setCurrentImageFile(null);
     }
   };
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setCurrentImageFile(e.target.files[0]);
     }
   };
-
   const handleSave = async () => {
     if (!session?.user?.email) {
       console.log("Session:", session);
       console.error("User not authenticated.");
       return;
     }
-  
     if (!title.trim()) {
       alert("Please enter a title for your thread");
       return;
     }
-  
     if (tweets.length === 0) {
       alert("Please add at least one tweet to your thread");
       return;
     }
-  
     try {
       setIsSaving(true);
   
-      // Upload images to Supabase and get URLs
+      // Get SAS token from storage API
+      const storageResponse = await fetch("/api/storage");
+      if (!storageResponse.ok) {
+        throw new Error("Failed to get storage access token");
+      }
+      const { sasToken, containerUrl } = await storageResponse.json();
+      
+      // Create blob service client with container URL and SAS token
+      const blobServiceClient = new BlobServiceClient(`${containerUrl}?${sasToken}`);
+      const containerClient = blobServiceClient.getContainerClient(containerName);
+  
       const tweetsWithUrls = await Promise.all(
         tweets.map(async (tweet) => {
           if (tweet.imageFile) {
             const fileName = `${Date.now()}-${tweet.imageFile.name}`;
-            const {  error } = await supabase.storage
-              .from('thread-images')
-              .upload(fileName, tweet.imageFile);
-
-            if (error) throw error;
-
-            const imageUrl = supabase.storage
-              .from('thread-images')
-              .getPublicUrl(fileName).data.publicUrl;
-
+            const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+            
+            const maxRetries = 3;
+            let retryCount = 0;
+            let uploadSuccess = false;
+  
+            while (!uploadSuccess && retryCount < maxRetries) {
+              try {
+                const buffer = await tweet.imageFile.arrayBuffer();
+                await blockBlobClient.uploadData(buffer, {
+                  blobHTTPHeaders: { blobContentType: tweet.imageFile.type }
+                });
+                uploadSuccess = true;
+              } catch (error) {
+                retryCount++;
+                if (retryCount === maxRetries) {
+                  throw new Error(`Failed to upload image after ${maxRetries} attempts: ${(error as Error).message}`);
+                }
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+              }
+            }
+  
+            const imageUrl = blockBlobClient.url;
             return { content: tweet.content, imageUrl };
           }
           return { content: tweet.content };
@@ -168,7 +185,6 @@ export function ThreadComposer() {
     }
   };
   
-
   const handleSubmit = async () => {
     if (!session) return console.error("User not authenticated.");
   
@@ -183,28 +199,51 @@ export function ThreadComposer() {
   
       setIsPosting(true);
   
-      // Upload any images that are File objects and get their URLs
+      // Get SAS token from storage API
+      const storageResponse = await fetch("/api/storage");
+      if (!storageResponse.ok) {
+        throw new Error("Failed to get storage access token");
+      }
+      const { sasToken, containerUrl } = await storageResponse.json();
+  
+      const blobServiceClient = new BlobServiceClient(`${containerUrl}?${sasToken}`);
+      const containerClient = blobServiceClient.getContainerClient(containerName);
+  
+      const uploadedBlobs: BlockBlobClient[] = [];
+  
       const tweetsWithImageUrls = await Promise.all(
         tweets.map(async (tweet) => {
           if (tweet.imageFile) {
             const fileName = `${Date.now()}-${tweet.imageFile.name}`;
-            const { error } = await supabase.storage
-              .from("thread-images")
-              .upload(fileName, tweet.imageFile);
+            const blockBlobClient = containerClient.getBlockBlobClient(fileName);
   
-            if (error) throw error;
+            const maxRetries = 3;
+            let retryCount = 0;
+            let uploadSuccess = false;
   
-            const publicUrl = supabase.storage
-              .from("thread-images")
-              .getPublicUrl(fileName).data.publicUrl;
+            while (!uploadSuccess && retryCount < maxRetries) {
+              try {
+                const buffer = await tweet.imageFile.arrayBuffer();
+                await blockBlobClient.uploadData(buffer, {
+                  blobHTTPHeaders: { blobContentType: tweet.imageFile.type },
+                });
+                uploadSuccess = true;
+                uploadedBlobs.push(blockBlobClient); // Save for deletion
+              } catch (error) {
+                retryCount++;
+                if (retryCount === maxRetries) {
+                  throw new Error(`Failed to upload image after ${maxRetries} attempts: ${(error as Error).message}`);
+                }
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+              }
+            }
   
-            return { content: tweet.content, imageUrl: publicUrl };
+            return { content: tweet.content, imageUrl: blockBlobClient.url };
           }
           return { content: tweet.content };
         })
       );
   
-      // Use JSON instead of FormData now
       const response = await fetch("/api/thread", {
         method: "POST",
         headers: {
@@ -225,12 +264,25 @@ export function ThreadComposer() {
       const data = await response.json();
       console.log("Thread posted:", data);
       setTweets([]);
+  
+      // Delete uploaded images from Azure Blob Storage
+      await Promise.all(
+        uploadedBlobs.map(async (blob) => {
+          try {
+            await blob.deleteIfExists();
+            console.log("deleted")
+          } catch (err) {
+            console.warn(`Failed to delete blob ${blob.name}:`, err);
+          }
+        })
+      );
     } catch (error) {
       console.error("Error posting thread:", error);
     } finally {
       setIsPosting(false);
     }
   };
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <motion.div

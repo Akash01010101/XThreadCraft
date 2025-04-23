@@ -21,7 +21,7 @@ export default function ThreadPage() {
           <SavedThreads />
         </div>
       </main>
-     <TweetDeleter/>
+    <TweetDeleter/>
     </div>
   );
 }

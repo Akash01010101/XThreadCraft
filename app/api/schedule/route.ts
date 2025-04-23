@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { TwitterApi, SendTweetV2Params } from "twitter-api-v2";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 interface ThreadContent {
   content: string;
@@ -19,6 +20,7 @@ interface Thread {
   access_secret?: string;
 }
 
+const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING!;
 
 async function getTwitterClient(userAccessToken: string, userAccessSecret: string): Promise<TwitterApi> {
   return new TwitterApi({
@@ -31,14 +33,13 @@ async function getTwitterClient(userAccessToken: string, userAccessSecret: strin
 
 export async function GET() {
   try {
-     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     console.log("Checking for scheduled tweets...");
 
-    // Fetch threads that are scheduled but not posted
     const { data: threads, error } = await supabase
       .from("threads")
       .select("*")
-      .lte("scheduled_time", new Date().toISOString()) // Only tweets scheduled until now
+      .lte("scheduled_time", new Date().toISOString())
       .eq("is_posted", false)
       .order("scheduled_time", { ascending: true })
       .returns<Thread[]>();
@@ -53,52 +54,65 @@ export async function GET() {
       return NextResponse.json({ success: true, message: "No pending tweets" });
     }
 
-    // Process each scheduled thread
     for (const thread of threads) {
       try {
-        console.log(`Posting scheduled tweet for user ${thread.user_id}`);
-
-        // Retrieve credentials from the thread record (adjust field names as necessary)
         const accessToken = thread.accessToken || thread.access_token;
         const accessSecret = thread.accessSecret || thread.access_secret;
 
         if (!accessToken || !accessSecret) {
-          console.error(`No Twitter credentials found for thread ${thread.id}`);
-          continue; // Skip if credentials are missing.
+          console.error(`No Twitter credentials for thread ${thread.id}`);
+          continue;
         }
 
         const client = await getTwitterClient(accessToken, accessSecret);
-
-        // Convert thread.content (an array) to a payload for tweetThread.
-        // Each element should have a 'text' property.
         const tweetsPayload: SendTweetV2Params[] = [];
-        
-        // Process each tweet in the thread
+
         for (const t of thread.content) {
           const tweet: SendTweetV2Params = { text: t.content };
-          
-          // If there's an image URL, upload it
+
           if (t.imageUrl) {
             try {
-              const response = await fetch(t.imageUrl);
+              const response = await fetch(t.imageUrl, {
+                headers: {
+                  'x-ms-blob-type': 'BlockBlob',
+                  'x-ms-version': '2020-04-08'
+                }
+              });
+
               const imageBuffer = await response.arrayBuffer();
               const mimeType = response.headers.get('content-type') || 'image/jpeg';
+
               const mediaId = await client.v1.uploadMedia(Buffer.from(imageBuffer), { mimeType });
               tweet.media = { media_ids: [mediaId] };
+
+              // Delete image from Azure
+              try {
+                const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+                const url = new URL(t.imageUrl);
+                const pathParts = url.pathname.split("/");
+                const containerName = pathParts[1];
+                const blobName = decodeURIComponent(pathParts.slice(2).join("/"));
+
+                const containerClient = blobServiceClient.getContainerClient(containerName);
+                const blobClient = containerClient.getBlobClient(blobName);
+                await blobClient.deleteIfExists();
+
+                console.log(`Deleted blob: ${blobName}`);
+              } catch (deleteError) {
+                console.warn(`Failed to delete blob:`, deleteError);
+              }
+
             } catch (mediaError) {
-              console.error('Error uploading image:', mediaError);
+              console.error("Error uploading image:", mediaError);
             }
           }
-          
+
           tweetsPayload.push(tweet);
         }
 
-        // Post the tweet thread using the Twitter API client
         const response = await client.v2.tweetThread(tweetsPayload);
-
         console.log("Tweet thread posted successfully:", response);
 
-        // Delete thread from the database after successful posting
         const { error: deleteError } = await supabase
           .from("threads")
           .delete()

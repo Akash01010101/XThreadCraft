@@ -39,8 +39,15 @@ export async function POST(request: Request) {
 
       if (imageUrl) {
         try {
-          console.log(`Downloading image for tweet ${i} from URL: ${imageUrl}`);
-          const response = await fetch(imageUrl);
+          const response = await fetch(imageUrl, {
+            headers: {
+              'x-ms-blob-type': 'BlockBlob',
+              'x-ms-version': '2020-04-08'
+            }
+          });
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image: ${response.statusText}`);
+          }
           const buffer = Buffer.from(await response.arrayBuffer());
           const contentType = response.headers.get("content-type") || "image/jpeg";
 
@@ -63,9 +70,9 @@ export async function POST(request: Request) {
 
     console.log("Posting thread to Twitter...");
     const thread = await client.v2.tweetThread(preparedTweets);
-    console.log("Thread posted successfully!", thread);
+    console.log("Thread posted successfully!");
 
-    return NextResponse.json({ success: true, thread });
+    return NextResponse.json({ success: true,thread});
 
   } catch (error) {
     console.error("Error posting thread:", error);
