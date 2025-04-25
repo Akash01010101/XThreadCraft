@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState} from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,14 +47,6 @@ export default function TweetDeleter() {
   const { data: session } = useSession();
  
 
-  useEffect(() => {
-    if (!session) {
-      setLoading(false);
-      return;
-    }
-    console.log(session)
-    fetchTweets()
-  }, [session])
 
   const CACHE_DURATION = 1000 * 60 * 60 * 6; // 4 hours in milliseconds
 
@@ -77,6 +69,7 @@ export default function TweetDeleter() {
   };
 
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [hasRefreshed, setHasRefreshed] = useState(false)
   const fetchTweets = async (forceRefresh = false) => {
     if (isRefreshing) return;
     setLoading(true);
@@ -229,12 +222,38 @@ export default function TweetDeleter() {
 
   const filteredTweets = tweets.filter((tweet) => tweet.text.toLowerCase().includes(searchQuery.toLowerCase()))
 
-  if (loading && tweets.length === 0) {
+  if (tweets.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <RefreshCw className="w-12 h-12 text-primary animate-spin" />
-          <p className="text-lg text-foreground">Loading tweets...</p>
+      <div className="min-h-screen bg-background text-foreground mt-16 p-4 md:p-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-center gap-4 mb-8">
+            <Trash2 className="w-8 h-8 text-red-500" />
+            <h1 className="text-3xl font-bold">Tweet Deleter</h1>
+          </div>
+          <Card className="bg-card border-border mb-8">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Delete Your Tweets</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Use this tool to find and delete your tweets. Once deleted, tweets cannot be recovered.
+              </p>
+              <div className="flex justify-center">
+                <Button 
+                  onClick={() => fetchTweets()} 
+                  disabled={!session || isRefreshing}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  {loading ? (
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  ) : null}
+                  Fetch Tweets
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -267,8 +286,11 @@ export default function TweetDeleter() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => fetchTweets(true)}
-                disabled={isRefreshing}
+                onClick={() => {
+                  fetchTweets(true);
+                  setHasRefreshed(true);
+                }}
+                disabled={isRefreshing || hasRefreshed}
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
